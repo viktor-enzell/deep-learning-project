@@ -8,7 +8,6 @@ def load_data(batch_size):
     """
     One-hot encodes all characters in book and creates batches
     for training data and test data.
-
     train_data: one-hot encoded characters
                 from book_chars[0] to book_chars[book_length - 1].
                 divided into batches of size batch_size.
