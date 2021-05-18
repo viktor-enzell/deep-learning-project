@@ -1,6 +1,6 @@
 from collections import Counter
 import numpy as np
-from RNN import RNN
+from rnn.RNN import RNN
 from tools import ComputePerplexity
 '''
 Test the RNN
@@ -22,7 +22,7 @@ def chars_to_one_hot(chars, vocab):
 
     return one_hot
 
-book = open('goblet_book.txt', 'r')
+book = open('../goblet_book.txt', 'r')
 counter = Counter()
 book_chars = []
 
