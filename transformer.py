@@ -1,11 +1,22 @@
 import torch.nn as nn
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
-from load_data import *
+from load_word_data import *
+import torch
 import math
 import time
 
 
 class TransformerModel(nn.Module):
+    """
+    Sequence to sequence Transformer model.
+    Encoder part consists of two TransformerEncoderLayers.
+    Decoder part only consists of a linear transformation.
+
+    Inspired by the tutorial at https://pytorch.org/tutorials/beginner/transformer_tutorial.html
+
+    TODO: Should the model have TransformerDecoderLayers as well?
+    """
+
     def __init__(self, vocab_size, embedding_size, encoder_nn_dim, num_encoder_layers, num_heads, dropout):
         super(TransformerModel, self).__init__()
         self.model_type = 'Transformer'
@@ -53,66 +64,57 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-def evaluate(criterion):
-    # Activate evaluation mode
-    model.eval()
-    total_loss = 0.
-    src_mask = model.generate_square_subsequent_mask(bptt).to(device)
-
-    with torch.no_grad():
-        for i in range(0, source.size(0) - 1, bptt):
-            data, targets = get_batch(source, i, bptt)
-            if data.size(0) != bptt:
-                src_mask = model.generate_square_subsequent_mask(data.size(0)).to(device)
-            output = model(data, src_mask)
-            output_flat = output.view(-1, vocab_size)
-            total_loss += len(data) * criterion(output_flat, targets).item()
-
-    return total_loss / (len(data) - 1)
-
-
 def train_one_epoch(epoch, criterion, optimizer, scheduler):
-    # Activate training mode
-    model.train()
+    """
+    Perform a forward and backward pass for each batch of data.
+    :param epoch: Epoch number.
+    :param criterion: Cross-entropy loss function.
+    :param optimizer: SGD optimizer.
+    :param scheduler: Decays the learning rate every step_size epochs.
+    """
+    model.train()  # Activate training mode
     total_loss = 0.
     start_time = time.time()
     src_mask = model.generate_square_subsequent_mask(bptt).to(device)
     log_interval = 100
 
-    for batch, i in enumerate(range(0, source.size(0) - 1, bptt)):
-        data, targets = get_batch(source, i, bptt)
+    for batch_num, i in enumerate(range(0, data.size(0) - 1, bptt)):
+        batch, targets = get_batch(data, i, bptt)
         optimizer.zero_grad()
-        if data.size(0) != bptt:
-            src_mask = model.generate_square_subsequent_mask(data.size(0)).to(device)
+        if batch.size(0) != bptt:
+            src_mask = model.generate_square_subsequent_mask(batch.size(0)).to(device)
 
-        output = model(data, src_mask)
+        output = model(batch, src_mask)
         loss = criterion(output.view(-1, vocab_size), targets)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
         optimizer.step()
 
         total_loss += loss.item()
-        if batch % log_interval == 0 and batch > 0:
+        if batch_num % log_interval == 0 and batch_num > 0:
             cur_loss = total_loss / log_interval
             elapsed = time.time() - start_time
             print('| epoch {:3d} | {:5d}/{:5d} batches | lr {:02.2f} | ms/batch {:5.2f} | '
-                  'loss {:5.2f} | ppl {:8.2f}'.format(epoch, batch, book_length // bptt, scheduler.get_last_lr()[0],
+                  'loss {:5.2f} | ppl {:8.2f}'.format(epoch, batch_num, book_length // bptt, scheduler.get_last_lr()[0],
                                                       elapsed * 1000 / log_interval, cur_loss, math.exp(cur_loss)))
             total_loss = 0
             start_time = time.time()
 
 
 def train():
-    print('Starting training')
-
+    """
+    Train the model for num_epochs epochs with cross-entropy loss and SGD.
+    An example of generated text is printed before and after each epoch.
+    """
     criterion = nn.CrossEntropyLoss()
     learning_rate = 5.0
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, gamma=0.95)
 
     best_val_loss = float('inf')
-    num_epochs = 2
+    num_epochs = 100
     best_model = None
+    print(f'Example of generated text: \n{generate_text()}')
 
     for epoch in range(1, num_epochs + 1):
         epoch_start_time = time.time()
@@ -122,6 +124,7 @@ def train():
         print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
               'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
                                          val_loss, math.exp(val_loss)))
+        print(f'| Example of generated text:\n| {generate_text()}')
         print('-' * 89)
 
         if val_loss < best_val_loss:
@@ -138,14 +141,63 @@ def train():
     torch.save(best_model.state_dict(), 'transformer_model.pth')
     print('Saved PyTorch Model State to transformer_model.pth')
 
+    print(f'Example of generated text:\n| {generate_text(max_num_tokens=1000)}')
+
+
+def evaluate(criterion):
+    """
+    Evaluate the model predictions with cross-entropy loss.
+    """
+    model.eval()  # Activate evaluation mode
+    total_loss = 0.
+    src_mask = model.generate_square_subsequent_mask(bptt).to(device)
+
+    with torch.no_grad():
+        for i in range(0, data.size(0) - 1, bptt):
+            batch, targets = get_batch(data, i, bptt)
+            if batch.size(0) != bptt:
+                src_mask = model.generate_square_subsequent_mask(batch.size(0)).to(device)
+            output = model(batch, src_mask)
+            output_flat = output.view(-1, vocab_size)
+            total_loss += len(batch) * criterion(output_flat, targets).item()
+
+    return total_loss / (len(data) - 1)
+
+
+def generate_text(start_token='to', max_num_tokens=25):
+    """
+    Generate a sequence of text.
+    Feed the model with a first token and let it predict the most likely next token,
+    use the predicted token as the input for the next prediction.
+    Repeat max_num_tokens times or until a EOS token is returned.
+    """
+    # TODO: Should a src_mask be created in this case?
+    # TODO: Handle EOS token.
+
+    model.eval()  # Activate evaluation mode
+    input_token = torch.tensor([vocab[start_token]], dtype=torch.long).to(device)
+    src_mask = model.generate_square_subsequent_mask(input_token.size(0)).to(device)
+    tokens = []
+
+    with torch.no_grad():
+        for i in range(max_num_tokens):
+            output = model(input_token, src_mask)
+            output_flat = output.view(-1, vocab_size)
+            token = get_most_probable_token(output_flat, vocab)
+            tokens.append(token)
+            input_token = torch.tensor([vocab[token]], dtype=torch.long).to(device)
+
+    model.train()  # Activate training mode
+    return ' '.join(tokens)
+
 
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('Using {} device'.format(device))
 
-    source, vocab = load_data()
+    data, vocab = load_data()
     vocab_size = len(vocab.stoi)
-    book_length = len(source)
+    book_length = len(data)
     bptt = 35
 
     model = TransformerModel(
