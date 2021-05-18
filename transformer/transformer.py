@@ -138,7 +138,7 @@ def train():
         best_val_loss, math.exp(best_val_loss)))
     print('=' * 89)
 
-    torch.save(best_model.state_dict(), 'transformer_model.pth')
+    torch.save(best_model.state_dict(), 'transformer/transformer_model.pth')
     print('Saved PyTorch Model State to transformer_model.pth')
 
     print(f'Example of generated text:\n| {generate_text(max_num_tokens=1000)}')
@@ -192,7 +192,7 @@ def generate_text(start_token='to', max_num_tokens=25):
 
 
 def load_model_and_generate_text():
-    model.load_state_dict(torch.load("transformer_model.pth", map_location=device))
+    model.load_state_dict(torch.load("transformer/transformer_model.pth", map_location=device))
     print(f'Model loaded from file.\n'
           f'Example of generated text:\n'
           f'{generate_text(start_token="wizard", max_num_tokens=100)}')
@@ -219,5 +219,5 @@ if __name__ == '__main__':
     # Choose to train or load model from file
     # by commenting out one of the lines below
 
-    # train()
-    load_model_and_generate_text()
+    train()
+    # load_model_and_generate_text()
