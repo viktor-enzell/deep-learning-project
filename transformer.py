@@ -191,6 +191,13 @@ def generate_text(start_token='to', max_num_tokens=25):
     return ' '.join(tokens)
 
 
+def load_model_and_generate_text():
+    model.load_state_dict(torch.load("transformer_model.pth", map_location=device))
+    print(f'Model loaded from file.\n'
+          f'Example of generated text:\n'
+          f'{generate_text(start_token="wizard", max_num_tokens=100)}')
+
+
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('Using {} device'.format(device))
@@ -209,4 +216,8 @@ if __name__ == '__main__':
         dropout=0.2
     ).to(device)
 
-    train()
+    # Choose to train or load model from file
+    # by commenting out one of the lines below
+
+    # train()
+    load_model_and_generate_text()

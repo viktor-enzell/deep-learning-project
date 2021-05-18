@@ -19,6 +19,7 @@ def load_data():
 
     for line in book.readlines():
         counter.update(tokenizer(line))
+    book.close()
 
     vocab = Vocab(counter, specials=['<unk>', '<pad>', '<bos>', '<eos>'])
 
@@ -40,8 +41,10 @@ def data_process(tokenizer, vocab):
     Read all data in book and store token indexes in tensor.
     """
     book = open('goblet_book.txt', 'r')
+
     data = [torch.tensor([vocab[token] for token in tokenizer(line)],
                          dtype=torch.long) for line in book.readlines()]
+    book.close()
 
     return torch.cat(tuple(filter(lambda t: t.numel() > 0, data)))
 
