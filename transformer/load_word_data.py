@@ -26,10 +26,9 @@ def load_data():
     vocab = Vocab(counter, specials=['<unk>', '<pad>', '<bos>', '<eos>'])
 
     data = data_process(tokenizer, vocab)
-    book_length = len(data)
     data = batch_data(data, batch_size)
 
-    return data, vocab, book_length
+    return data, vocab
 
 
 def data_process(tokenizer, vocab):
@@ -73,7 +72,8 @@ def get_batch(data, i, bptt):
     return batch, target
 
 
-def get_most_probable_token(output_probabilities, vocab):
-    index = torch.argmax(output_probabilities, dim=1)
-    token = vocab.itos[index]
-    return token
+def get_most_probable_tokens(output_probabilities, vocab):
+    tokens = []
+    index = torch.argmax(output_probabilities, dim=1)[-1]
+    tokens.append(vocab.itos[index])
+    return tokens
