@@ -114,7 +114,7 @@ def train():
     best_val_loss = float('inf')
     num_epochs = 100
     best_model = None
-    print(f'Example of generated text (before training): \n{generate_text()}')
+    print(f'Example of generated text (before training): \n{generate_text_from_prev_seq()}')
     print('Starting training...')
 
     for epoch in range(1, num_epochs + 1):
@@ -125,7 +125,7 @@ def train():
         print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
               'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
                                          val_loss, math.exp(val_loss)))
-        print(f'| Example of generated text:\n| {generate_text()}')
+        print(f'| Example of generated text:\n| {generate_text_from_prev_seq()}')
         print('-' * 89)
 
         if val_loss < best_val_loss:
@@ -142,7 +142,7 @@ def train():
     torch.save(best_model.state_dict(), 'word_transformer_model.pth')
     print('Saved PyTorch Model State to word_transformer_model.pth')
 
-    print(f'Example of generated text:\n| {generate_text(max_num_tokens=1000)}')
+    print(f'Example of generated text:\n| {generate_text_from_prev_seq(max_num_tokens=1000)}')
 
 
 def evaluate(criterion):
@@ -165,15 +165,12 @@ def evaluate(criterion):
     return total_loss / (len(data) - 1)
 
 
-def generate_text(start_token='.', max_num_tokens=25):
+def generate_text_from_prev_seq(start_token='.', max_num_tokens=25):
     """
     Generate a sequence of text.
     Feed the model with a first token and let it predict the most likely next token,
-    use the predicted token as the input for the next prediction.
-    Repeat max_num_tokens times or until a EOS token is returned.
+    use the predicted tokens so far as the input for the next prediction.
     """
-    # TODO: Handle EOS token.
-
     model.eval()  # Activate evaluation mode
     previous_tokens = torch.tensor([vocab[start_token]], dtype=torch.long).to(device)
     src_mask = model.generate_square_subsequent_mask(previous_tokens.size(0)).to(device)
@@ -196,11 +193,35 @@ def generate_text(start_token='.', max_num_tokens=25):
     return ' '.join(predicted_tokens)
 
 
+def generate_text_from_prev_token(start_token='.', max_num_tokens=25):
+    """
+    Generate a sequence of text.
+    Feed the model with a first token and let it predict the most likely next token,
+    use the predicted token as the input for the next prediction.
+    Repeat max_num_tokens times or until a EOS token is returned.
+    """
+    model.eval()  # Activate evaluation mode
+    input_token = torch.tensor([vocab[start_token]], dtype=torch.long).to(device)
+    src_mask = model.generate_square_subsequent_mask(input_token.size(0)).to(device)
+    tokens = []
+
+    with torch.no_grad():
+        for i in range(max_num_tokens):
+            output = model(input_token, src_mask)
+            output_flat = output.view(-1, vocab_size)
+            token = get_most_probable_tokens(output_flat, vocab)
+            tokens.append(token)
+            input_token = torch.tensor([vocab[token]], dtype=torch.long).to(device)
+
+    model.train()  # Activate training mode
+    return ' '.join(tokens)
+
+
 def load_model_and_generate_text():
     model.load_state_dict(torch.load("word_transformer_model.pth", map_location=device))
     print(f'Model loaded from file.\n'
           f'Example of generated text:\n'
-          f'{generate_text(max_num_tokens=100)}')
+          f'{generate_text_from_prev_seq(max_num_tokens=100)}')
 
 
 if __name__ == '__main__':
