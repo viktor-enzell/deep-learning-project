@@ -200,7 +200,7 @@ def load_model_and_generate_text():
     model.load_state_dict(torch.load("word_transformer_model.pth", map_location=device))
     print(f'Model loaded from file.\n'
           f'Example of generated text:\n'
-          f'{generate_text(start_token=".", max_num_tokens=100)}')
+          f'{generate_text(max_num_tokens=100)}')
 
 
 if __name__ == '__main__':
