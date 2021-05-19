@@ -76,7 +76,7 @@ def train_one_epoch(epoch, criterion, optimizer, scheduler):
     total_loss = 0.
     start_time = time.time()
     src_mask = model.generate_square_subsequent_mask(bptt).to(device)
-    log_interval = 100
+    log_interval = 50
 
     for batch_num, i in enumerate(range(0, data.size(0) - 1, bptt)):
         batch, targets = get_batch(data, i, bptt)
@@ -95,7 +95,7 @@ def train_one_epoch(epoch, criterion, optimizer, scheduler):
             cur_loss = total_loss / log_interval
             elapsed = time.time() - start_time
             print('| epoch {:3d} | {:5d}/{:5d} batches | lr {:02.2f} | ms/batch {:5.2f} | '
-                  'loss {:5.2f} | ppl {:8.2f}'.format(epoch, batch_num, book_length // bptt, scheduler.get_last_lr()[0],
+                  'loss {:5.2f} | ppl {:8.2f}'.format(epoch, batch_num, len(data) // bptt, scheduler.get_last_lr()[0],
                                                       elapsed * 1000 / log_interval, cur_loss, math.exp(cur_loss)))
             total_loss = 0
             start_time = time.time()
@@ -114,7 +114,7 @@ def train():
     best_val_loss = float('inf')
     num_epochs = 100
     best_model = None
-    print(f'Example of generated text (before training): \n{generate_text()}')
+    print(f'Example of generated text (before training): \n{generate_text_from_prev_seq()}')
     print('Starting training...')
 
     for epoch in range(1, num_epochs + 1):
@@ -125,7 +125,7 @@ def train():
         print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
               'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
                                          val_loss, math.exp(val_loss)))
-        print(f'| Example of generated text:\n| {generate_text()}')
+        print(f'| Example of generated text:\n| {generate_text_from_prev_seq()}')
         print('-' * 89)
 
         if val_loss < best_val_loss:
@@ -142,7 +142,7 @@ def train():
     torch.save(best_model.state_dict(), 'word_transformer_model.pth')
     print('Saved PyTorch Model State to word_transformer_model.pth')
 
-    print(f'Example of generated text:\n| {generate_text(max_num_tokens=1000)}')
+    print(f'Example of generated text:\n| {generate_text_from_prev_seq(max_num_tokens=1000)}')
 
 
 def evaluate(criterion):
@@ -165,16 +165,41 @@ def evaluate(criterion):
     return total_loss / (len(data) - 1)
 
 
-def generate_text(start_token='.', max_num_tokens=25):
+def generate_text_from_prev_seq(start_token='.', max_num_tokens=25):
+    """
+    Generate a sequence of text.
+    Feed the model with a first token and let it predict the most likely next token,
+    use the predicted tokens so far as the input for the next prediction.
+    """
+    model.eval()  # Activate evaluation mode
+    previous_tokens = torch.tensor([vocab[start_token]], dtype=torch.long).to(device)
+    src_mask = model.generate_square_subsequent_mask(previous_tokens.size(0)).to(device)
+    predicted_tokens = []
+
+    with torch.no_grad():
+        for i in range(max_num_tokens):
+            output = model(previous_tokens, src_mask)
+            output_flat = output.view(-1, vocab_size)
+            current_predicted_tokens = get_most_probable_tokens(output_flat, vocab)
+            next_token = current_predicted_tokens[-1]
+            predicted_tokens.append(next_token)
+            previous_tokens = torch.cat([
+                previous_tokens,
+                torch.tensor([vocab[next_token]], dtype=torch.long).to(device)
+            ])
+            src_mask = model.generate_square_subsequent_mask(previous_tokens.size(0)).to(device)
+
+    model.train()  # Activate training mode
+    return ' '.join(predicted_tokens)
+
+
+def generate_text_from_prev_token(start_token='.', max_num_tokens=25):
     """
     Generate a sequence of text.
     Feed the model with a first token and let it predict the most likely next token,
     use the predicted token as the input for the next prediction.
     Repeat max_num_tokens times or until a EOS token is returned.
     """
-    # TODO: Should a src_mask be created in this case?
-    # TODO: Handle EOS token.
-
     model.eval()  # Activate evaluation mode
     input_token = torch.tensor([vocab[start_token]], dtype=torch.long).to(device)
     src_mask = model.generate_square_subsequent_mask(input_token.size(0)).to(device)
@@ -184,7 +209,7 @@ def generate_text(start_token='.', max_num_tokens=25):
         for i in range(max_num_tokens):
             output = model(input_token, src_mask)
             output_flat = output.view(-1, vocab_size)
-            token = get_most_probable_token(output_flat, vocab)
+            token = get_most_probable_tokens(output_flat, vocab)
             tokens.append(token)
             input_token = torch.tensor([vocab[token]], dtype=torch.long).to(device)
 
@@ -196,14 +221,14 @@ def load_model_and_generate_text():
     model.load_state_dict(torch.load("word_transformer_model.pth", map_location=device))
     print(f'Model loaded from file.\n'
           f'Example of generated text:\n'
-          f'{generate_text(start_token=".", max_num_tokens=100)}')
+          f'{generate_text_from_prev_seq(max_num_tokens=100)}')
 
 
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('Using {} device'.format(device))
 
-    data, vocab, book_length = load_data()
+    data, vocab = load_data()
     vocab_size = len(vocab.stoi)
     bptt = 35
 
