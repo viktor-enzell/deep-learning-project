@@ -4,6 +4,10 @@ from load_word_data import *
 import torch
 import math
 import time
+import torch.nn.functional as F
+from torch.distributions import Categorical
+import numpy as np
+import random
 
 
 class TransformerModel(nn.Module):
@@ -13,8 +17,6 @@ class TransformerModel(nn.Module):
     Decoder part only consists of a linear transformation.
 
     Inspired by the tutorial at https://pytorch.org/tutorials/beginner/transformer_tutorial.html
-
-    TODO: Should the model have TransformerDecoderLayers as well?
     """
 
     def __init__(self, vocab_size, embedding_size, encoder_nn_dim, num_encoder_layers, num_heads, dropout):
@@ -114,18 +116,20 @@ def train():
     best_val_loss = float('inf')
     num_epochs = 100
     best_model = None
-    print(f'Example of generated text (before training): \n{generate_text_from_prev_seq()}')
+    loss_each_epoch = []
+    print(f'Example of generated text (before training): \n{generate_text_from_prev_seq(model)}')
     print('Starting training...')
 
     for epoch in range(1, num_epochs + 1):
         epoch_start_time = time.time()
         train_one_epoch(epoch, criterion, optimizer, scheduler)
         val_loss = evaluate(criterion)
+        loss_each_epoch.append(val_loss)
         print('-' * 89)
         print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
               'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
                                          val_loss, math.exp(val_loss)))
-        print(f'| Example of generated text:\n| {generate_text_from_prev_seq()}')
+        print(f'| Example of generated text:\n| {generate_text_from_prev_seq(model)}')
         print('-' * 89)
 
         if val_loss < best_val_loss:
@@ -139,10 +143,16 @@ def train():
         best_val_loss, math.exp(best_val_loss)))
     print('=' * 89)
 
+    print(f'Example of generated text:\n| {generate_text_from_prev_seq(best_model, max_num_tokens=100)}')
+
+    print('=' * 89)
+    print('Avg loss for each epoch:')
+    for loss in loss_each_epoch:
+        print('{:5.2f}'.format(loss))
+    print('=' * 89)
+
     torch.save(best_model.state_dict(), 'word_transformer_model.pth')
     print('Saved PyTorch Model State to word_transformer_model.pth')
-
-    print(f'Example of generated text:\n| {generate_text_from_prev_seq(max_num_tokens=1000)}')
 
 
 def evaluate(criterion):
@@ -165,7 +175,7 @@ def evaluate(criterion):
     return total_loss / (len(data) - 1)
 
 
-def generate_text_from_prev_seq(start_token='.', max_num_tokens=25):
+def generate_text_from_prev_seq(model, start_token='.', max_num_tokens=40):
     """
     Generate a sequence of text.
     Feed the model with a first token and let it predict the most likely next token,
@@ -179,13 +189,17 @@ def generate_text_from_prev_seq(start_token='.', max_num_tokens=25):
     with torch.no_grad():
         for i in range(max_num_tokens):
             output = model(previous_tokens, src_mask)
-            output_flat = output.view(-1, vocab_size)
-            current_predicted_tokens = get_most_probable_tokens(output_flat, vocab)
-            next_token = current_predicted_tokens[-1]
+            output_flat = output.view(-1, vocab_size)[-1]
+            soft_max_scores = F.softmax(output_flat, dim=0)
+
+            dist = Categorical(soft_max_scores)
+            next_index = dist.sample()
+            next_token = vocab.itos[next_index.item()]
+
             predicted_tokens.append(next_token)
             previous_tokens = torch.cat([
                 previous_tokens,
-                torch.tensor([vocab[next_token]], dtype=torch.long).to(device)
+                torch.tensor([next_index], dtype=torch.long).to(device)
             ])
             src_mask = model.generate_square_subsequent_mask(previous_tokens.size(0)).to(device)
 
@@ -209,9 +223,14 @@ def generate_text_from_prev_token(start_token='.', max_num_tokens=25):
         for i in range(max_num_tokens):
             output = model(input_token, src_mask)
             output_flat = output.view(-1, vocab_size)
-            token = get_most_probable_tokens(output_flat, vocab)
-            tokens.append(token)
-            input_token = torch.tensor([vocab[token]], dtype=torch.long).to(device)
+            soft_max_scores = F.softmax(output_flat, dim=1)
+
+            dist = Categorical(soft_max_scores)
+            next_index = dist.sample().item()
+            next_token = vocab.itos[next_index]
+
+            tokens.append(next_token)
+            input_token = torch.tensor([vocab[next_index]], dtype=torch.long).to(device)
 
     model.train()  # Activate training mode
     return ' '.join(tokens)
@@ -221,7 +240,7 @@ def load_model_and_generate_text():
     model.load_state_dict(torch.load("word_transformer_model.pth", map_location=device))
     print(f'Model loaded from file.\n'
           f'Example of generated text:\n'
-          f'{generate_text_from_prev_seq(max_num_tokens=100)}')
+          f'{generate_text_from_prev_seq(model, max_num_tokens=100)}')
 
 
 if __name__ == '__main__':
@@ -230,12 +249,12 @@ if __name__ == '__main__':
 
     data, vocab = load_data()
     vocab_size = len(vocab.stoi)
-    bptt = 35
+    bptt = 36
 
     model = TransformerModel(
         vocab_size=vocab_size,
-        embedding_size=200,
-        encoder_nn_dim=200,
+        embedding_size=256,
+        encoder_nn_dim=256,
         num_encoder_layers=2,
         num_heads=2,
         dropout=0.2
