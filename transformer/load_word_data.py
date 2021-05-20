@@ -17,7 +17,7 @@ def load_data():
     book = open('../goblet_book.txt', 'r')
     counter = Counter()
     tokenizer = get_tokenizer('basic_english')
-    batch_size = 25
+    batch_size = 20
 
     for line in book.readlines():
         counter.update(tokenizer(line))
