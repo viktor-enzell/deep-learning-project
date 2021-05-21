@@ -183,6 +183,7 @@ def generate_text_from_prev_seq(model, start_token='.', max_num_tokens=40):
     previous_tokens = torch.tensor([vocab[start_token]], dtype=torch.long).to(device)
     src_mask = model.generate_square_subsequent_mask(previous_tokens.size(0)).to(device)
     predicted_tokens = []
+    previous_token_index = vocab[start_token]
 
     with torch.no_grad():
         for i in range(max_num_tokens):
@@ -191,8 +192,10 @@ def generate_text_from_prev_seq(model, start_token='.', max_num_tokens=40):
             soft_max_scores = F.softmax(output_flat, dim=0)
 
             dist = Categorical(soft_max_scores)
-            next_index = dist.sample()
-            next_token = vocab.itos[next_index.item()]
+            next_index = dist.sample().item()
+            while previous_token_index == next_index:
+                next_index = dist.sample().item()
+            next_token = vocab.itos[next_index]
 
             predicted_tokens.append(next_token)
             previous_tokens = torch.cat([
