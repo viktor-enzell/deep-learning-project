@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tools import Softmax
 
 class RNN():
 
@@ -37,6 +36,24 @@ class RNN():
             'V' : np.zeros((K, m))
         }
     
+    def SynthSeq(self, h0, x0, n):
+        Y = np.zeros((self.K, n))
+        h_t = h0
+        x_t = x0
+
+        for i in range(n):
+            # Forward pass
+            a_t = self.RNN['W'] @ h_t + self.RNN['U'] @ x_t + self.RNN['b'][:, 0]
+            h_t = np.tanh(a_t)
+            o_t = self.RNN['V'] @ h_t + self.RNN['c'][:, 0]
+            p_t = Softmax(o_t)
+
+            # Sample
+            R = np.random.choice(self.K, size=1, p=p_t)
+            Y[R, i] = 1
+            x_t = Y[:, i]
+        return Y
+
     def Forward(self, X, h0):
         n = X.shape[1]
         P = np.zeros((self.K, n))
@@ -87,11 +104,13 @@ class RNN():
 
         return
 
-    def MiniBatchGradient(self, book_data, n_update, seq_length=25, eta=0.1):
+    def MiniBatchGradient(self, book_data, n_update, int_to_char, seq_length=25, eta=0.1):
         # Parameter initialization
         e = 0
         eps = 1e-10
-        period_disp = 200
+        period_disp = 1000
+        period_synth = 5000
+        synth_length = 200
         n_plot = int((n_update-1) / period_disp) + 1
         smooth_loss_tab = np.zeros(n_plot)
         hprev = np.zeros(self.m)
@@ -116,6 +135,14 @@ class RNN():
                     smooth_loss = loss
                 smooth_loss_tab[cur_plot] = smooth_loss
                 print("Smooth loss: ", smooth_loss_tab[cur_plot])
+            
+            if i % period_synth == 0:
+                # Synthesize test
+                print("Update: ", i)
+                Y_synth = self.SynthSeq(hprev, X[:, 0], synth_length)
+                seq_synth = OnehotToSeq(Y_synth, int_to_char)
+                print("Sequence synthesized: ")
+                print(seq_synth)
               
             # Forward pass
             P, h, a = self.Forward(X, hprev)
@@ -154,3 +181,18 @@ class RNN():
         plt.show()
             
         return
+
+def Softmax(o):
+	P = np.exp(o) / np.sum(np.exp(o), axis=0)
+	return P
+
+def OnehotToSeq(onehot, int_to_char):
+    n = onehot.shape[1]
+    seq = ""
+
+    for i in range(n):
+        idx = np.where(onehot[:, i] == 1)[0][0]
+        seq += int_to_char[idx]
+
+    return seq
+    

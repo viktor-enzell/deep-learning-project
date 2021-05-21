@@ -1,5 +1,6 @@
 from collections import Counter
 import numpy as np
+import os
 from rnn.RNN import RNN
 from tools import ComputePerplexity
 '''
@@ -7,12 +8,14 @@ Test the RNN
 '''
 def create_vocab(C):
     char_to_int = {}
+    int_to_char = {}
     d = len(C)
 
     for i in range(d):
         char_to_int[C[i]] = i
+        int_to_char[i] = C[i]
     
-    return char_to_int
+    return char_to_int, int_to_char
 
 def chars_to_one_hot(chars, vocab):
     indexes = np.array([vocab[char] for char in chars])
@@ -22,7 +25,7 @@ def chars_to_one_hot(chars, vocab):
 
     return one_hot
 
-book = open('../goblet_book.txt', 'r')
+book = open('goblet_book.txt', 'r')
 counter = Counter()
 book_chars = []
 
@@ -32,17 +35,17 @@ for line in book.readlines():
 
 book_length = len(book_chars)
 C = list(set(book_chars))
-vocab = create_vocab(C)
+char_to_int, int_to_char = create_vocab(C)
 
-data = chars_to_one_hot(book_chars, vocab).T
+data = chars_to_one_hot(book_chars, char_to_int).T
 
 m = 100
 K = data.shape[0]
-sigma = 0.01
+sigma = 1/m
 myRNN = RNN(m, K, sigma)
 
 n_update = 100000
-myRNN.MiniBatchGradient(data, n_update)
+myRNN.MiniBatchGradient(data, n_update, int_to_char)
 
 h0 = np.zeros(m)
 e = 0
