@@ -6,8 +6,6 @@ import math
 import time
 import torch.nn.functional as F
 from torch.distributions import Categorical
-import numpy as np
-import random
 
 
 class TransformerModel(nn.Module):
@@ -77,13 +75,13 @@ def train_one_epoch(epoch, criterion, optimizer, scheduler):
     model.train()  # Activate training mode
     total_loss = 0.
     start_time = time.time()
-    src_mask = model.generate_square_subsequent_mask(bptt).to(device)
+    src_mask = model.generate_square_subsequent_mask(batch_seq_len).to(device)
     log_interval = 50
 
-    for batch_num, i in enumerate(range(0, data.size(0) - 1, bptt)):
-        batch, targets = get_batch(data, i, bptt)
+    for batch_num, i in enumerate(range(0, data.size(0) - 1, batch_seq_len)):
+        batch, targets = get_batch(data, i, batch_seq_len)
         optimizer.zero_grad()
-        if batch.size(0) != bptt:
+        if batch.size(0) != batch_seq_len:
             src_mask = model.generate_square_subsequent_mask(batch.size(0)).to(device)
 
         output = model(batch, src_mask)
@@ -97,7 +95,7 @@ def train_one_epoch(epoch, criterion, optimizer, scheduler):
             cur_loss = total_loss / log_interval
             elapsed = time.time() - start_time
             print('| epoch {:3d} | {:5d}/{:5d} batches | lr {:02.2f} | ms/batch {:5.2f} | '
-                  'loss {:5.2f} | ppl {:8.2f}'.format(epoch, batch_num, len(data) // bptt, scheduler.get_last_lr()[0],
+                  'loss {:5.2f} | ppl {:8.2f}'.format(epoch, batch_num, len(data) // batch_seq_len, scheduler.get_last_lr()[0],
                                                       elapsed * 1000 / log_interval, cur_loss, math.exp(cur_loss)))
             total_loss = 0
             start_time = time.time()
@@ -161,12 +159,12 @@ def evaluate(criterion):
     """
     model.eval()  # Activate evaluation mode
     total_loss = 0.
-    src_mask = model.generate_square_subsequent_mask(bptt).to(device)
+    src_mask = model.generate_square_subsequent_mask(batch_seq_len).to(device)
 
     with torch.no_grad():
-        for i in range(0, data.size(0) - 1, bptt):
-            batch, targets = get_batch(data, i, bptt)
-            if batch.size(0) != bptt:
+        for i in range(0, data.size(0) - 1, batch_seq_len):
+            batch, targets = get_batch(data, i, batch_seq_len)
+            if batch.size(0) != batch_seq_len:
                 src_mask = model.generate_square_subsequent_mask(batch.size(0)).to(device)
             output = model(batch, src_mask)
             output_flat = output.view(-1, vocab_size)
@@ -185,6 +183,7 @@ def generate_text_from_prev_seq(model, start_token='.', max_num_tokens=40):
     previous_tokens = torch.tensor([vocab[start_token]], dtype=torch.long).to(device)
     src_mask = model.generate_square_subsequent_mask(previous_tokens.size(0)).to(device)
     predicted_tokens = []
+    previous_token_index = vocab[start_token]
 
     with torch.no_grad():
         for i in range(max_num_tokens):
@@ -193,8 +192,10 @@ def generate_text_from_prev_seq(model, start_token='.', max_num_tokens=40):
             soft_max_scores = F.softmax(output_flat, dim=0)
 
             dist = Categorical(soft_max_scores)
-            next_index = dist.sample()
-            next_token = vocab.itos[next_index.item()]
+            next_index = dist.sample().item()
+            while previous_token_index == next_index:
+                next_index = dist.sample().item()
+            next_token = vocab.itos[next_index]
 
             predicted_tokens.append(next_token)
             previous_tokens = torch.cat([
@@ -249,7 +250,7 @@ if __name__ == '__main__':
 
     data, vocab = load_data()
     vocab_size = len(vocab.stoi)
-    bptt = 36
+    batch_seq_len = 36
 
     model = TransformerModel(
         vocab_size=vocab_size,
