@@ -14,7 +14,7 @@ import pandas as pd
 
 # data = list(read_file)
 
-
+"LOSS DATA THAT IS GENERATED FROM MODELS DURING TRAINING"
 RNN_main = np.array([43.13427665,42.0830938,41.54901794,41.2136166,40.9907408,40.8327906,40.71711881,40.62676248,40.55060979,40.48212099,\
                      40.41909235,40.36163307,40.30960764,40.26214833,40.21906747,40.18034837,40.14488476,40.1127368,40.0831316,40.05587862])
     
@@ -71,12 +71,18 @@ transformer_4 = np.array([9.8,7.31,7.28,6.65,6.32,6.29,6.14,6.12,6.13,6.07,5.92,
 transformer_5 = np.array([5.67,5.01,4.73,4.54,4.4,4.27,4.14,4.06,3.96,3.88,3.8,3.75,3.68,3.62,3.56,3.5,3.46,3.41,3.37,3.32])
 transformer_6 = np.array([5.47,4.85,4.59,4.37,4.23,4.09,3.94,3.83,3.7,3.59,3.49,3.39,3.3,3.21,3.14,3.04,2.97,2.89,2.83,2.76])
 
+
+"LIST OF LOSS VALUES FOR EACH MODEL OF EACH NETWORK"
+
+
 RNN_models = [RNN_main, RNN_1, RNN_2, RNN_3, RNN_4, RNN_5, RNN_6]
 
 LSTM_models = [LSTM_main, LSTM_1, LSTM_2, LSTM_3, LSTM_4, LSTM_5, LSTM_6]
 
 transformer_models = [transformer_main, transformer_1, transformer_2, transformer_3, transformer_4, transformer_5, transformer_6]
 
+
+"CREATING LISTS THAT CONTAINS LOSS DROP IN TERMS OF PERCENTAGES FOR 10 EPOCHS FOR EACH MODEL IN EACH NETWORK"
 RNN_loss_drop = []
 LSTM_loss_drop = []
 transformer_loss_drop = []
@@ -86,6 +92,7 @@ for i in range(len(RNN_models)):
     RNN_model = RNN_models[i]
     LSTM_model = LSTM_models[i]
     transformer_model = transformer_models[i]
+    #Since model-4 of RNN has only 5 loss values, we calculate only 5 Epochs loss drop for this model
     if i == 4:
         RNN_loss = (RNN_model[0]-RNN_model[4]) / RNN_model[0] * 100
     else:
@@ -98,82 +105,30 @@ for i in range(len(RNN_models)):
     transformer_loss_drop.append(transformer_loss)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# f1, axarr1 = plt.subplots(1, 3)
-# axarr1 = axarr1.reshape(1,3)
-# f1.suptitle('Training Loss comparisons for Transformer Networks', fontsize=20)
-# n_epochs1 = transformer_1.size
-# x_axis1 = list(range(n_epochs1))
-
-# axarr1[0, 0].plot(x_axis1, transformer_1)
-# axarr1[0, 0].plot(x_axis1, transformer_2)
-# axarr1[0, 0].set_title("# of Training Data Experiment", fontsize=18)
-# axarr1[0, 0].set(xlabel = "epochs", ylabel = "loss")
-# axarr1[0, 0].legend(["Trained on 30% of Data", "Trained on 60% of Data"])
-                    
-# axarr1[0, 1].plot(x_axis1, transformer_3)
-# axarr1[0, 1].plot(x_axis1, transformer_4)
-# axarr1[0, 1].set_title("learning Rate Experiment", fontsize=18)
-# axarr1[0, 1].set(xlabel = "epochs", ylabel = "loss")
-# axarr1[0, 1].legend(["learning rate = 0.5", "learning rate = 10"])
-
-# axarr1[0, 2].plot(x_axis1, transformer_5)
-# axarr1[0, 2].plot(x_axis1, transformer_6)
-# axarr1[0, 2].set_title("# of Nodes Per Layer Experiment", fontsize=18)
-# axarr1[0, 2].set(xlabel = "epochs", ylabel = "loss")
-# axarr1[0, 2].legend(["Nodes Per Layer = 128 ", "Nodes Per Layer = 256"])
-# plt.show()
-
-
-"ALL MODELS FIGURE"
+" TABLE FOR ALL MODELS FIGURE"
 # columns = ["Network Type", "Model", "Amount of Training Data (%)", "Learning Rate", "# of Nodes per layer"]
 # columns = [{"Network Type":1, "Model":2, "Amount of Training Data (%)":3, "Learning Rate":4, "# of Nodes per layer":5}]
 # cell_values = [["RNN", "Main Model", "100%", "0.1", "50"],
-#                ["RNN", "Model-1", "30%", "0.1", "100"],
-#                ["RNN", "Model-2", "60%", "0.1", "100"],
-#                ["RNN", "Model-3", "100%", "0.01", "100"],
-#                ["RNN", "Model-4", "100%", "1", "100"],
-#                ["RNN", "Model-5", "100%", "0.1", "100"],
-#                ["RNN", "Model-6", "100%", "0.1", "200"],
-#                ["LSTM", "Main Model", "100%", "0.002", "512"],
-#                ["LSTM", "Model-1", "30%", "0.002", "512"],
-#                ["LSTM", "Model-2", "60%", "0.002", "512"],
-#                ["LSTM", "Model-3", "100%", "0.02", "512"],
-#                ["LSTM", "Model-4", "100%", "0.0002", "512"],
-#                ["LSTM", "Model-5", "100%", "0.002", "128"],
-#                ["LSTM", "Model-6", "100%", "0.002", "256"],
-#                ["Transformer", "Main Model", "100%", "5", "512"],
-#                ["Transformer", "Model-1", "30%", "5", "512"],
-#                ["Transformer", "Model-2", "60%", "5", "512"],
-#                ["Transformer", "Model-3", "100%", "0.5", "512"],
-#                ["Transformer", "Model-4", "100%", "10", "512"],
-#                ["Transformer", "Model-5", "100%", "5", "128"],
-#                ["Transformer", "Model-6", "100%", "5", "256"]]
+#                 ["RNN", "Model-1", "30%", "0.1", "100"],
+#                 ["RNN", "Model-2", "60%", "0.1", "100"],
+#                 ["RNN", "Model-3", "100%", "0.01", "100"],
+#                 ["RNN", "Model-4", "100%", "1", "100"],
+#                 ["RNN", "Model-5", "100%", "0.1", "100"],
+#                 ["RNN", "Model-6", "100%", "0.1", "200"],
+#                 ["LSTM", "Main Model", "100%", "0.002", "512"],
+#                 ["LSTM", "Model-1", "30%", "0.002", "512"],
+#                 ["LSTM", "Model-2", "60%", "0.002", "512"],
+#                 ["LSTM", "Model-3", "100%", "0.02", "512"],
+#                 ["LSTM", "Model-4", "100%", "0.0002", "512"],
+#                 ["LSTM", "Model-5", "100%", "0.002", "128"],
+#                 ["LSTM", "Model-6", "100%", "0.002", "256"],
+#                 ["Transformer", "Main Model", "100%", "5", "512"],
+#                 ["Transformer", "Model-1", "30%", "5", "512"],
+#                 ["Transformer", "Model-2", "60%", "5", "512"],
+#                 ["Transformer", "Model-3", "100%", "0.5", "512"],
+#                 ["Transformer", "Model-4", "100%", "10", "512"],
+#                 ["Transformer", "Model-5", "100%", "5", "128"],
+#                 ["Transformer", "Model-6", "100%", "5", "256"]]
 # dff_columns = pd.DataFrame(columns)
 # dff_values = pd.DataFrame(cell_values)
    
@@ -189,14 +144,36 @@ for i in range(len(RNN_models)):
 #     loc ='upper left')         
    
 # ax.set_title('Models for The Experiments', 
-#              fontweight ="bold", fontsize = 25) 
+#               fontweight ="bold", fontsize = 25) 
 # table.auto_set_font_size(False)
 # table.set_fontsize(18)
 # table.auto_set_column_width(col=list(range(len(dff_values.columns))))
-# #table.scale(2, 2)
+# table[(2,2)].set_facecolor("lightcoral")
+# table[(3,2)].set_facecolor("lightcoral")
+# table[(9,2)].set_facecolor("lightcoral")
+# table[(10,2)].set_facecolor("lightcoral")
+# table[(16,2)].set_facecolor("lightcoral")
+# table[(17,2)].set_facecolor("lightcoral")
 
 
-"MODELS FOR TRAINING DATA FIGURE"
+# table[(4, 3)].set_facecolor("lightcoral")
+# table[(5, 3)].set_facecolor("lightcoral")
+# table[(11, 3)].set_facecolor("lightcoral")
+# table[(12, 3)].set_facecolor("lightcoral")
+# table[(18, 3)].set_facecolor("lightcoral")
+# table[(19, 3)].set_facecolor("lightcoral")
+
+
+# table[(6, 4)].set_facecolor("lightcoral")
+# table[(7, 4)].set_facecolor("lightcoral")
+# table[(13, 4)].set_facecolor("lightcoral")
+# table[(14, 4)].set_facecolor("lightcoral")
+# table[(20, 4)].set_facecolor("lightcoral")
+# table[(21, 4)].set_facecolor("lightcoral")
+
+
+
+"TABLE FOR MODELS FOR TRAINING DATA FIGURE"
 
 
 # columns = ["Network Type", "Model", "Amount of Training Data (%)", "Learning Rate", "# of Nodes per layer"]
@@ -234,20 +211,20 @@ for i in range(len(RNN_models)):
 # table.set_fontsize(18)
 # table.auto_set_column_width(col=list(range(len(dff_values.columns))))
 
-# table[(1, 2)].set_facecolor("red")
-# table[(2, 2)].set_facecolor("red")
-# table[(3, 2)].set_facecolor("red")
-# table[(4, 2)].set_facecolor("red")
-# table[(5, 2)].set_facecolor("red")
-# table[(6, 2)].set_facecolor("red")
-# table[(7, 2)].set_facecolor("red")
-# table[(8, 2)].set_facecolor("red")
-# table[(9, 2)].set_facecolor("red")
+# table[(1, 2)].set_facecolor("lightcoral")
+# table[(2, 2)].set_facecolor("lightcoral")
+# table[(3, 2)].set_facecolor("lightcoral")
+# table[(4, 2)].set_facecolor("lightcoral")
+# table[(5, 2)].set_facecolor("lightcoral")
+# table[(6, 2)].set_facecolor("lightcoral")
+# table[(7, 2)].set_facecolor("lightcoral")
+# table[(8, 2)].set_facecolor("lightcoral")
+# table[(9, 2)].set_facecolor("lightcoral")
 
 
 
 
-"MODELS FOR lEARNING RATE FIGURE"
+"TABLE MODELS FOR lEARNING RATE FIGURE"
 
 
 # columns = ["Network Type", "Model", "Amount of Training Data (%)", "Learning Rate", "# of Nodes per layer"]
@@ -285,17 +262,17 @@ for i in range(len(RNN_models)):
 # table.set_fontsize(18)
 # table.auto_set_column_width(col=list(range(len(dff_values.columns))))
 
-# table[(1, 3)].set_facecolor("red")
-# table[(2, 3)].set_facecolor("red")
-# table[(3, 3)].set_facecolor("red")
-# table[(4, 3)].set_facecolor("red")
-# table[(5, 3)].set_facecolor("red")
-# table[(6, 3)].set_facecolor("red")
-# table[(7, 3)].set_facecolor("red")
-# table[(8, 3)].set_facecolor("red")
-# table[(9, 3)].set_facecolor("red")
+# table[(1, 3)].set_facecolor("lightcoral")
+# table[(2, 3)].set_facecolor("lightcoral")
+# table[(3, 3)].set_facecolor("lightcoral")
+# table[(4, 3)].set_facecolor("lightcoral")
+# table[(5, 3)].set_facecolor("lightcoral")
+# table[(6, 3)].set_facecolor("lightcoral")
+# table[(7, 3)].set_facecolor("lightcoral")
+# table[(8, 3)].set_facecolor("lightcoral")
+# table[(9, 3)].set_facecolor("lightcoral")
 
-"MODELS FOR NUMBER OF NODES EACH LAYER"
+"TABLE FOR MODELS FOR NUMBER OF NODES EACH LAYER"
 
 # columns = ["Network Type", "Model", "Amount of Training Data (%)", "Learning Rate", "# of Nodes per layer"]
 # columns = [{"Network Type":1, "Model":2, "Amount of Training Data (%)":3, "Learning Rate":4, "# of Nodes per layer":5}]
@@ -332,18 +309,18 @@ for i in range(len(RNN_models)):
 # table.set_fontsize(18)
 # table.auto_set_column_width(col=list(range(len(dff_values.columns))))
 
-# table[(1, 4)].set_facecolor("red")
-# table[(2, 4)].set_facecolor("red")
-# table[(3, 4)].set_facecolor("red")
-# table[(4, 4)].set_facecolor("red")
-# table[(5, 4)].set_facecolor("red")
-# table[(6, 4)].set_facecolor("red")
-# table[(7, 4)].set_facecolor("red")
-# table[(8, 4)].set_facecolor("red")
-# table[(9, 4)].set_facecolor("red")
+# table[(1, 4)].set_facecolor("lightcoral")
+# table[(2, 4)].set_facecolor("lightcoral")
+# table[(3, 4)].set_facecolor("lightcoral")
+# table[(4, 4)].set_facecolor("lightcoral")
+# table[(5, 4)].set_facecolor("lightcoral")
+# table[(6, 4)].set_facecolor("lightcoral")
+# table[(7, 4)].set_facecolor("lightcoral")
+# table[(8, 4)].set_facecolor("lightcoral")
+# table[(9, 4)].set_facecolor("lightcoral")
 
 
-"MODELS FOR MAINS"
+"TABLE FOR MODELS FOR MAINS"
 
 # columns = ["Network Type", "Model", "Amount of Training Data (%)", "Learning Rate", "# of Nodes per layer"]
 # columns = [{"Network Type":1, "Model":2, "Amount of Training Data (%)":3, "Learning Rate":4, "# of Nodes per layer":5}]
@@ -373,16 +350,16 @@ for i in range(len(RNN_models)):
 # table.set_fontsize(18)
 # table.auto_set_column_width(col=list(range(len(dff_values.columns))))
 
-# table[(1, 0)].set_facecolor("red")
-# table[(2, 0)].set_facecolor("red")
-# table[(3, 0)].set_facecolor("red")
+# table[(1, 0)].set_facecolor("lightcoral")
+# table[(2, 0)].set_facecolor("lightcoral")
+# table[(3, 0)].set_facecolor("lightcoral")
 
 
-"Training plot comparsion"
+"TRAINING DATA EXPERIMENT PLOT COMPARISON WITH LOSS DROP PERCENTAGE"
 
 # f1, axarr1 = plt.subplots(2, 2)
 # axarr1 = axarr1.reshape(2,2)
-# f1.suptitle('Training Loss Comparisons',fontweight ="bold", fontsize=25)
+# f1.suptitle('Training Data Loss Comparisons',fontweight ="bold", fontsize=25)
 
 # x_axis1 = list(range(11))
 # x_axis1 = np.array(x_axis1[1:])
@@ -411,18 +388,18 @@ for i in range(len(RNN_models)):
 # axarr1[1, 0].set(xlabel = "epochs", ylabel = "loss")
 # axarr1[1, 0].legend(["Trained Data: 30% (Model-1)", "Trained Data: 60% (Model-2)","Trained Data: 100% (Main Model)"])
 
-# columns = [{"Network Type":1, "Model":2, "Loss drop in 10 epochs (%)":3}]
-# cell_values = [["RNN", "Main Model", str(RNN_loss_drop[0]) +" %"],
-#                 ["RNN", "Model-1", str(RNN_loss_drop[1]) +" %"],
-#                 ["RNN", "Model-2", str(RNN_loss_drop[2]) +" %"],
+# columns = [{"Network Type":1, "Model":2, "Loss drop in first 10 epochs (%)":3}]
+# cell_values = [["RNN", "Main Model (Trained Data: 100%)", str(RNN_loss_drop[0]) +" %"],
+#                 ["RNN", "Model-1 (Trained Data: 30%)", str(RNN_loss_drop[1]) +" %"],
+#                 ["RNN", "Model-2 (Trained Data: 60%)", str(RNN_loss_drop[2]) +" %"],
 
-#                 ["LSTM", "Main Model", str(LSTM_loss_drop[0]) +" %"],
-#                 ["LSTM", "Model-1", str(LSTM_loss_drop[1]) +" %"],
-#                 ["LSTM", "Model-2", str(LSTM_loss_drop[2]) +" %"],
+#                 ["LSTM", "Main Model (Trained Data: 100%)", str(LSTM_loss_drop[0]) +" %"],
+#                 ["LSTM", "Model-1 (Trained Data: 30%)", str(LSTM_loss_drop[1]) +" %"],
+#                 ["LSTM", "Model-2 (Trained Data: 60%)", str(LSTM_loss_drop[2]) +" %"],
 
-#                 ["Transformer", "Main Model", str(transformer_loss_drop[0]) +" %"],
-#                 ["Transformer", "Model-1", str(transformer_loss_drop[1]) +" %"],
-#                 ["Transformer", "Model-2", str(transformer_loss_drop[2]) +" %"]]
+#                 ["Transformer", "Main Model (Trained Data: 100%)", str(transformer_loss_drop[0]) +" %"],
+#                 ["Transformer", "Model-1 (Trained Data: 30%)", str(transformer_loss_drop[1]) +" %"],
+#                 ["Transformer", "Model-2 (Trained Data: 60%)", str(transformer_loss_drop[2]) +" %"]]
 
 # dff_columns = pd.DataFrame(columns)
 # dff_values = pd.DataFrame(cell_values)
@@ -445,15 +422,311 @@ for i in range(len(RNN_models)):
 # table.set_fontsize(12)
 # table.auto_set_column_width(col=list(range(len(dff_values.columns))))
 
-# table[(1, 2)].set_facecolor("lime")
-# table[(2, 2)].set_facecolor("lime")
-# table[(3, 2)].set_facecolor("lime")
-# table[(4, 2)].set_facecolor("lime")
-# table[(5, 2)].set_facecolor("lime")
-# table[(6, 2)].set_facecolor("lime")
-# table[(7, 2)].set_facecolor("lime")
-# table[(8, 2)].set_facecolor("lime")
-# table[(9, 2)].set_facecolor("lime")
+# table[(1, 2)].set_facecolor("palegreen")
+# table[(2, 2)].set_facecolor("palegreen")
+# table[(3, 2)].set_facecolor("palegreen")
+# table[(4, 2)].set_facecolor("palegreen")
+# table[(5, 2)].set_facecolor("palegreen")
+# table[(6, 2)].set_facecolor("palegreen")
+# table[(7, 2)].set_facecolor("palegreen")
+# table[(8, 2)].set_facecolor("palegreen")
+# table[(9, 2)].set_facecolor("palegreen")
+
+
+
+"LEARNING RATE EXPERIMENT PLOT COMPARISON WITH LOSS DROP PERCENTAGE"
+
+
+# f1, axarr1 = plt.subplots(2, 2)
+# axarr1 = axarr1.reshape(2,2)
+# f1.suptitle('Learning Rate Loss Comparisons',fontweight ="bold", fontsize=25)
+
+# x_axis1 = list(range(11))
+# x_axis1 = np.array(x_axis1[1:])
+
+# axarr1[0, 0].plot(x_axis1, RNN_3)
+# axarr1[0, 0].plot(x_axis1, RNN_4)
+# axarr1[0, 0].plot(x_axis1, RNN_main[:10])
+# axarr1[0, 0].set_xticks(x_axis1)
+# axarr1[0, 0].set_title("RNN Network",fontweight ="bold", fontsize=15)
+# axarr1[0, 0].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[0, 0].legend(["Learning Rate: 0.01 (Model-3)", "Learning Rate: 1 (Model-4)","Learning Rate: 0.1 (Main Model)"])
+                    
+# axarr1[0, 1].plot(x_axis1, LSTM_3[:10])
+# axarr1[0, 1].plot(x_axis1, LSTM_4[:10])
+# axarr1[0, 1].plot(x_axis1, LSTM_main[:10])
+# axarr1[0, 1].set_xticks(x_axis1)
+# axarr1[0, 1].set_title("LSTM Network",fontweight ="bold", fontsize=15)
+# axarr1[0, 1].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[0, 1].legend(["Learning Rate: 0.02 (Model-3)", "Learning Rate: 0.0002 (Model-4)","Learning Rate: 0.002 (Main Model)"])
+
+# axarr1[1, 0].plot(x_axis1, transformer_3[:10])
+# axarr1[1, 0].plot(x_axis1, transformer_4[:10])
+# axarr1[1, 0].plot(x_axis1, transformer_main[:10])
+# axarr1[1, 0].set_xticks(x_axis1)
+# axarr1[1, 0].set_title("Transformer Network",fontweight ="bold", fontsize=15)
+# axarr1[1, 0].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[1, 0].legend(["Learning Rate: 0.5 (Model-3)", "Learning Rate: 10 (Model-4)","Learning Rate: 5 (Main Model)"])
+
+# columns = [{"Network Type":1, "Model":2, "Loss drop in first 10 epochs (%)":3}]
+# cell_values = [["RNN", "Main Model (Learning Rate: 0.1)", str(RNN_loss_drop[0]) +" %"],
+#                 ["RNN", "Model-3 (Learning Rate: 0.01)", str(RNN_loss_drop[3]) +" %"],
+#                 ["RNN", "Model-4 (Learning Rate: 1)", str(RNN_loss_drop[4]) +" %"],
+
+#                 ["LSTM", "Main Model (Learning Rate: 0.002)", str(LSTM_loss_drop[0]) +" %"],
+#                 ["LSTM", "Model-3 (Learning Rate: 0.02)", str(LSTM_loss_drop[3]) +" %"],
+#                 ["LSTM", "Model-4 (Learning Rate: 0.0002)", str(LSTM_loss_drop[4]) +" %"],
+
+#                 ["Transformer", "Main Model (Learning Rate: 5)", str(transformer_loss_drop[0]) +" %"],
+#                 ["Transformer", "Model-3 (Learning Rate: 0.5)", str(transformer_loss_drop[3]) +" %"],
+#                 ["Transformer", "Model-4 (Learning Rate: 10)", str(transformer_loss_drop[4]) +" %"]]
+
+# dff_columns = pd.DataFrame(columns)
+# dff_values = pd.DataFrame(cell_values)
+
+   
+
+# axarr1[1,1].set_axis_off() 
+# table = axarr1[1,1].table( 
+#     cellText = dff_values.values,  
+#     # rowLabels = val2,  
+#     colLabels = dff_columns.columns, 
+#     # rowColours =["palegreen"] * 10,  
+#     colColours =["yellow"] * 3, 
+#     cellLoc ='center',  
+#     loc ='upper left')         
+   
+# axarr1[1,1].set_title('Loss Drop Comparison (%)', 
+#               fontweight ="bold", fontsize = 15) 
+# table.auto_set_font_size(False)
+# table.set_fontsize(12)
+# table.auto_set_column_width(col=list(range(len(dff_values.columns))))
+
+# table[(1, 2)].set_facecolor("palegreen")
+# table[(2, 2)].set_facecolor("palegreen")
+# table[(3, 2)].set_facecolor("palegreen")
+# table[(4, 2)].set_facecolor("palegreen")
+# table[(5, 2)].set_facecolor("palegreen")
+# table[(6, 2)].set_facecolor("palegreen")
+# table[(7, 2)].set_facecolor("palegreen")
+# table[(8, 2)].set_facecolor("palegreen")
+# table[(9, 2)].set_facecolor("palegreen")
+
+"NUMBER OF NODES EXPERIMENT PLOT COMPARISON WITH LOSS DROP PERCENTAGE"
+
+
+# f1, axarr1 = plt.subplots(2, 2)
+# axarr1 = axarr1.reshape(2,2)
+# f1.suptitle('Number of Nodes Loss Comparisons',fontweight ="bold", fontsize=25)
+
+# x_axis1 = list(range(11))
+# x_axis1 = np.array(x_axis1[1:])
+
+# axarr1[0, 0].plot(x_axis1, RNN_5[:10])
+# axarr1[0, 0].plot(x_axis1, RNN_6[:10])
+# axarr1[0, 0].plot(x_axis1, RNN_main[:10])
+# axarr1[0, 0].set_xticks(x_axis1)
+# axarr1[0, 0].set_title("RNN Network",fontweight ="bold", fontsize=15)
+# axarr1[0, 0].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[0, 0].legend(["Number of Nodes: 100 (Model-5)", "Number of Nodes: 200 (Model-6)","Number of Nodes: 50 (Main Model)"])
+                    
+# axarr1[0, 1].plot(x_axis1, LSTM_5[:10])
+# axarr1[0, 1].plot(x_axis1, LSTM_6[:10])
+# axarr1[0, 1].plot(x_axis1, LSTM_main[:10])
+# axarr1[0, 1].set_xticks(x_axis1)
+# axarr1[0, 1].set_title("LSTM Network",fontweight ="bold", fontsize=15)
+# axarr1[0, 1].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[0, 1].legend(["Number of Nodes: 128 (Model-5)", "Number of Nodes: 256 (Model-6)","Number of Nodes: 512 (Main Model)"])
+
+# axarr1[1, 0].plot(x_axis1, transformer_5[:10])
+# axarr1[1, 0].plot(x_axis1, transformer_6[:10])
+# axarr1[1, 0].plot(x_axis1, transformer_main[:10])
+# axarr1[1, 0].set_xticks(x_axis1)
+# axarr1[1, 0].set_title("Transformer Network",fontweight ="bold", fontsize=15)
+# axarr1[1, 0].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[1, 0].legend(["Number of Nodes: 128 (Model-5)", "Number of Nodes: 256 (Model-6)","Number of Nodes: 512 (Main Model)"])
+
+# columns = [{"Network Type":1, "Model":2, "Loss drop in 10 epochs (%)":3}]
+# cell_values = [["RNN", "Main Model (Number of Nodes: 50)", str(RNN_loss_drop[0]) +" %"],
+#                 ["RNN", "Model-5 (Number of Nodes: 100)", str(RNN_loss_drop[5]) +" %"],
+#                 ["RNN", "Model-6 (Number of Nodes: 200)", str(RNN_loss_drop[6]) +" %"],
+
+#                 ["LSTM", "Main Model (Number of Nodes: 512)", str(LSTM_loss_drop[0]) +" %"],
+#                 ["LSTM", "Model-5 (Number of Nodes: 128)", str(LSTM_loss_drop[5]) +" %"],
+#                 ["LSTM", "Model-6 (Number of Nodes: 256)", str(LSTM_loss_drop[6]) +" %"],
+
+#                 ["Transformer", "Main Model (Number of Nodes: 512)", str(transformer_loss_drop[0]) +" %"],
+#                 ["Transformer", "Model-5 (Number of Nodes: 128)", str(transformer_loss_drop[5]) +" %"],
+#                 ["Transformer", "Model-6 (Number of Nodes: 256)", str(transformer_loss_drop[6]) +" %"]]
+
+# dff_columns = pd.DataFrame(columns)
+# dff_values = pd.DataFrame(cell_values)
+
+   
+
+# axarr1[1,1].set_axis_off() 
+# table = axarr1[1,1].table( 
+#     cellText = dff_values.values,  
+#     # rowLabels = val2,  
+#     colLabels = dff_columns.columns, 
+#     # rowColours =["palegreen"] * 10,  
+#     colColours =["yellow"] * 3, 
+#     cellLoc ='center',  
+#     loc ='upper left')         
+   
+# axarr1[1,1].set_title('Loss Drop Comparison (%)', 
+#               fontweight ="bold", fontsize = 15) 
+# table.auto_set_font_size(False)
+# table.set_fontsize(12)
+# table.auto_set_column_width(col=list(range(len(dff_values.columns))))
+
+# table[(1, 2)].set_facecolor("palegreen")
+# table[(2, 2)].set_facecolor("palegreen")
+# table[(3, 2)].set_facecolor("palegreen")
+# table[(4, 2)].set_facecolor("palegreen")
+# table[(5, 2)].set_facecolor("palegreen")
+# table[(6, 2)].set_facecolor("palegreen")
+# table[(7, 2)].set_facecolor("palegreen")
+# table[(8, 2)].set_facecolor("palegreen")
+# table[(9, 2)].set_facecolor("palegreen")
+
+"NETWORK COMPARISON PLOT COMPARISON WITH LOSS DROP PERCENTAGE"
+
+
+# f1, axarr1 = plt.subplots(2, 2)
+# axarr1 = axarr1.reshape(2,2)
+# f1.suptitle('Network Type Loss Comparisons',fontweight ="bold", fontsize=25)
+
+# x_axis1 = list(range(RNN_main.size+1))
+# x_axis1 = np.array(x_axis1[1:])
+# x_axis2 = list(range(LSTM_main.size+1))
+# x_axis2 = np.array(x_axis2[1:])
+# x_axis3 = list(range(transformer_main.size+1))
+# x_axis3 = np.array(x_axis3[1:])
+
+
+# axarr1[0, 0].plot(x_axis1, RNN_main)
+# axarr1[0, 0].set_xticks(x_axis1)
+# axarr1[0, 0].set_title("RNN Network",fontweight ="bold", fontsize=15)
+# axarr1[0, 0].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[0, 0].legend(["Main Model"])
+                    
+
+# axarr1[0, 1].plot(x_axis2, LSTM_main)
+# axarr1[0, 1].set_xticks(x_axis2)
+# axarr1[0, 1].set_title("LSTM Network",fontweight ="bold", fontsize=15)
+# axarr1[0, 1].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[0, 1].legend(["Main Model"])
+
+
+# axarr1[1, 0].plot(x_axis3, transformer_main)
+# axarr1[1, 0].set_title("Transformer Network",fontweight ="bold", fontsize=15)
+# axarr1[1, 0].set(xlabel = "epochs", ylabel = "loss")
+# axarr1[1, 0].legend(["Main Model"])
+
+# columns = [{"Network Type":1, "Model":2, "Loss drop in first 10 epochs (%)":3}]
+# cell_values = [["RNN", "Main Model", str(RNN_loss_drop[0]) +" %"],
+
+#                 ["LSTM", "Main Model", str(LSTM_loss_drop[0]) +" %"],
+
+#                 ["Transformer", "Main Model", str(transformer_loss_drop[0]) +" %"]]
+
+# dff_columns = pd.DataFrame(columns)
+# dff_values = pd.DataFrame(cell_values)
+
+   
+
+# axarr1[1,1].set_axis_off() 
+# table = axarr1[1,1].table( 
+#     cellText = dff_values.values,  
+#     # rowLabels = val2,  
+#     colLabels = dff_columns.columns, 
+#     # rowColours =["palegreen"] * 10,  
+#     colColours =["yellow"] * 3, 
+#     cellLoc ='center',  
+#     loc ='upper left')         
+   
+# axarr1[1,1].set_title('Loss Drop Comparison (%)', 
+#               fontweight ="bold", fontsize = 15) 
+# table.auto_set_font_size(False)
+# table.set_fontsize(12)
+# table.auto_set_column_width(col=list(range(len(dff_values.columns))))
+
+# table[(1, 2)].set_facecolor("palegreen")
+# table[(2, 2)].set_facecolor("palegreen")
+# table[(3, 2)].set_facecolor("palegreen")
+
+"TABLE FOR TEXT GENERATION OF THE MODELS"
+
+columns = ["Network Type", "Model", "Generated Text"]
+columns = [{"Network Type":1, "Model":2, "Generated Text":3}]
+cell_values = [["RNN", "Main Model", """rs," said Fhe forned mus, and a will whot were com.  All only.  As than for his at was before as the latch over they sezzy.
+"Goodies it, an behing and quibls.  Harry with in Denow his unuture for amlot that says.  Thurre, and toom offey Magun the Ground to an 
+Harry they ely stiff a larching the stangged woll the woald her's."I nevined wavell; Harry were trikt.
+Whey wart to halmicoll but into I gut just on, of eally; in foursied insile I manicing"""],
+
+                ["LSTM", "Main Model", """   Harry walked on her cars.  As George, Cedric Diggory, and Dumbledore didn't have to shatter 
+                  when he curiously at Cedric would bring himself on a gone from the rest of the subject."You've given him my deaths, 
+                  and Bagman will pay from nine no loss."The servant. . .""Seats her.  I know you find me the third task."
+Hagrid began to talk to was worried.By instant, to revive him an absence.The Triwizard Cup faces in bratch, black dreams at Dumbledore's cave.
+"""],
+
+                ["Transformer", "Main Model", """all those peoples deaths were concealed had a bit out for my father kept his eye upon the color, saying me!
+                  said in the dark mark? harry saw an idiot she ate grapefruit at the thing for the door opened, 
+                  not look about eighty times like crouch is murmur of course, you, and they swiveled onto his firebolt, 
+                  said cedric and his blind panic that sirius would be wondering whether or all in the daily prophet, 
+                  the pale drowsy around its smell, you going to leave with proper name came to"""]]
+
+dff_columns = pd.DataFrame(columns)
+dff_values = pd.DataFrame(cell_values)
+   
+fig, ax = plt.subplots() 
+ax.set_axis_off() 
+table = ax.table( 
+    cellText = dff_values.values,  
+    # rowLabels = val2,  
+    colLabels = dff_columns.columns, 
+    # rowColours =["palegreen"] * 10,  
+    colColours =["yellow"] * 5, 
+    cellLoc ='center',  
+    loc ='upper left')         
+   
+# ax.set_title('Text Generation Comparison', 
+#               fontweight ="bold", fontsize = 25) 
+table.auto_set_font_size(False)
+table.set_fontsize(10)
+# table.auto_set_column_width(col=list(range(len(dff_values.columns))))
+
+table[(0, 0)].set_height(0.03)
+table[(0, 0)].set_width(0.07)
+table[(0, 1)].set_height(0.03)
+table[(0, 1)].set_width(0.06)
+table[(0, 2)].set_height(0.03)
+table[(0, 2)].set_width(0.7)
+
+table[(1, 0)].set_height(0.10)
+table[(1, 0)].set_width(0.07)
+table[(1, 1)].set_height(0.10)
+table[(1, 1)].set_width(0.06)
+table[(1, 2)].set_height(0.10)
+table[(1, 2)].set_width(0.7)
+
+table[(2, 0)].set_height(0.11)
+table[(2, 0)].set_width(0.07)
+table[(2, 1)].set_height(0.11)
+table[(2, 1)].set_width(0.06)
+table[(2, 2)].set_height(0.11)
+table[(2, 2)].set_width(0.7)
+
+table[(3, 0)].set_height(0.13)
+table[(3, 0)].set_width(0.07)
+table[(3, 1)].set_height(0.13)
+table[(3, 1)].set_width(0.06)
+table[(3, 2)].set_height(0.13)
+table[(3, 2)].set_width(0.7)
+
+# table[(2, 0)].set_facecolor("lightcoral")
+# table[(3, 0)].set_facecolor("lightcoral")
 
 
    
